@@ -173,12 +173,35 @@ module Jekyll
           # set elastic update time to find removed post after.
           "es_update_date" => now.strftime("%FT%T%z"),
           "title" => post.title,
-          "url" => "#{site.config['url']}#{post.url}",
+          "url" => "#{post.url}",
           "content" => post.content
         }
 
         es.refresh
         es.create_post Oj.dump(data)
+      end
+
+      site.collections.each do |tag, tag_pages|
+        judge = site.config['collections'][tag]['elasticsearch']
+        if judge == nil or judge == false
+          next
+        end
+        site.collections[tag].docs.reverse.each_with_index do |post, i|
+          post_id = Digest::MD5.hexdigest(post.url).hex % (2**32)
+          data = {
+            # create uniq id from url.
+            "post_id" => post_id,
+            "post_date" => post.data['date'].strftime("%FT%T%z"),
+            # set elastic update time to find removed post after.
+            "es_update_date" => now.strftime("%FT%T%z"),
+            "title" => post.data['title'],
+            "url" => "#{post.url}",
+            "content" => post.content
+          }
+
+          es.refresh
+          es.create_post Oj.dump(data)
+        end
       end
       # delete removed post from elasticsearch
       es.refresh

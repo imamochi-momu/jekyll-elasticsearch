@@ -54,7 +54,7 @@ module Jekyll
         content = { "type" => "string", "store" => true, "index" => "analyzed" }
       end
 
-      _id = { "path" => "post_id" }
+      _uid = { "path" => "post_id" }
       _timestamp = { "enabled" => true, "path" => "post_date" }
       _source = { "enabled" => false }
       if @analyzer
@@ -65,8 +65,7 @@ module Jekyll
       properties = { "post_id" => post_id, "post_date" => post_date, "es_update_date" => es_update_date,
                      "url" => url, "title" => title, "content" => content }
 
-      post = { "_id" => _id, "_timestamp" => _timestamp, "_source" => _source,
-               "_all" => _all, "properties" => properties }
+      post = { "properties" => properties }
       mappings = { "#{@type}" => post }
 
       body = settings ? { "settings" => settings, "mappings" => mappings } : { "mappings" => mappings }
@@ -164,15 +163,15 @@ module Jekyll
       end
 
       now = Time.now
-      site.posts.reverse.each_with_index do |post, i|
+      site.posts.docs.reverse.each_with_index do |post, i|
         post_id = Digest::MD5.hexdigest(post.url).hex % (2**32)
         data = {
           # create uniq id from url.
           "post_id" => post_id,
-          "post_date" => post.date.strftime("%FT%T%z"),
+          "post_date" => post['date'].strftime("%FT%T%z"),
           # set elastic update time to find removed post after.
           "es_update_date" => now.strftime("%FT%T%z"),
-          "title" => post.title,
+          "title" => post['title'],
           "url" => "#{post.url}",
           "content" => post.content
         }

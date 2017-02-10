@@ -140,7 +140,8 @@ module Jekyll
         raise "[elasticsearch plugin]: no config for elasticsearch in _config.yml."
       end
 
-      host = es_config['host']
+      schema = es_config['ssl'] ? 'https://' : 'http://'
+      host = schema + es_config['host'] + ':' + es_config['port'].to_s(10)
       index = es_config['index']
       type = es_config['type']
       analyzer = es_config['analyzer']

@@ -141,7 +141,8 @@ module Jekyll
       end
 
       schema = es_config['ssl'] ? 'https://' : 'http://'
-      host = schema + es_config['host'] + ':' + es_config['port'].to_s(10)
+      auth = es_config['username'].nil? || es_config['password'].nil?  ? '' : "#{es_config['username']}:#{es_config['password']}@"
+      host = schema + auth + es_config['host'] + ':' + es_config['port'].to_s(10)
       index = es_config['index']
       type = es_config['type']
       analyzer = es_config['analyzer']
